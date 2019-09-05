@@ -15,10 +15,15 @@ You can follow the [Google developer QuickStart](https://developers.google.com/c
 Then in the resulting dialog click **DOWNLOAD CLIENT CONFIGURATION** and save the file credentials.json to your working directory.
 
 ## Installation
-You have to install
+
+#### With go CLI
 ```bash
 go build .
 ```
+
+#### Direct download
+
+You can also download the binaries from the **Release** page: https://github.com/ShellBear/epical/releases.
 
 ## Commands
 
