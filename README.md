@@ -18,7 +18,8 @@ Then in the resulting dialog click **DOWNLOAD CLIENT CONFIGURATION** and save th
 
 #### With go CLI
 ```bash
-go build .
+go get -v -u github.com/ShellBear/epical/...
+epical version
 ```
 
 #### Direct download
