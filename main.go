@@ -1,4 +1,4 @@
-package epical
+package main
 
 import "github.com/ShellBear/epical/cmd"
 

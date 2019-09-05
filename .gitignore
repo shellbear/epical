@@ -15,6 +15,7 @@ gen
 ### Go template
 # Binaries for programs and plugins
 epical
+!epical/
 *.exe
 *.exe~
 *.dll
