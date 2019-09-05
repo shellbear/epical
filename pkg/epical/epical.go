@@ -3,6 +3,9 @@ package epical
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
+	"text/tabwriter"
 )
 
 const (
@@ -16,13 +19,25 @@ func ListEvents(epitechToken string) {
 		log.Fatal(err)
 	}
 
+	writer := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
+	fmt.Fprintln(writer, "NAME\tSTART\tEND\tROOM")
+
 	if len(data) == 0 {
 		fmt.Println("No upcoming events found.")
 	} else {
 		for _, evt := range data {
-			fmt.Printf("%v (%v-%v)\n", evt.ActiTitle, evt.Start, evt.End)
+			rdv, valid := evt.RdvGroupRegistered.(string)
+
+			if valid {
+				parts := strings.Split(rdv, "|")
+				fmt.Fprintf(writer, "%s\t%s\t%s\t%s\n", evt.ActiTitle, parts[0], parts[1], evt.Room.Code)
+			} else {
+				fmt.Fprintf(writer, "%s\t%s\t%s\t%s\n", evt.ActiTitle, evt.Start, evt.End, evt.Room.Code)
+			}
 		}
 	}
+
+	writer.Flush()
 }
 
 func ClearEvents(credentialsPath string) {
