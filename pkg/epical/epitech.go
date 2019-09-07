@@ -88,8 +88,8 @@ func GetRegisteredEvents(token string) ([]EpitechEvent, error) {
 	}
 
 	for _, c := range data {
-		status, valid := c.EventRegistered.(string)
-		if valid && status == "registered" {
+		status, valid := c.EventRegistered.(bool)
+		if !valid || status {
 			registeredEvents = append(registeredEvents, c)
 		}
 	}
