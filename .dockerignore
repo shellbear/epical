@@ -1,0 +1,11 @@
+.git
+.gitignore
+.github
+.goreleaser.yml
+
+vendor
+epical
+dist
+token.json
+credentials.json
+README.md

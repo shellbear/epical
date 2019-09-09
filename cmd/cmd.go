@@ -19,7 +19,7 @@ var cli = &cobra.Command{
 }
 
 func Execute() {
-	cli.PersistentFlags().StringVarP(&Credentials, "credentials", "c", "credentials.json", "Google API credentials")
+	cli.PersistentFlags().StringVarP(&Credentials, "credentials", "c", "./", "Google API credentials folder")
 
 	if err := cli.Execute(); err != nil {
 		fmt.Println(err)
@@ -30,8 +30,6 @@ func Execute() {
 func init() {
 	listCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
 	listCmd.MarkPersistentFlagRequired("token")
-	syncCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
-	syncCmd.MarkPersistentFlagRequired("token")
 
 	cli.AddCommand(versionCmd)
 	cli.AddCommand(clearCmd)

@@ -50,8 +50,8 @@ Delete all events previously created by EpiCal.
 
 #### Credentials
 
-You can specify the Google Calendar API `credentials.json` file path using the `--credentials` or `-c` option.
+You can specify the Google Calendar API folder path containing `credentials.json` and `token.json` files using the `--credentials` or `-c` option.
 
 ```bash
-./epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN --credentials ~/credentials.json sync
+./epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN --credentials /run/secrets/ sync
 ```

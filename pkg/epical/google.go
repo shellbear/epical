@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -39,11 +40,11 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-func getClient(config *oauth2.Config) *http.Client {
+func getClient(config *oauth2.Config, credentialsPath string) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
-	tokFile := "token.json"
+	tokFile := path.Join(credentialsPath, "token.json")
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
@@ -191,7 +192,7 @@ func NewGoogleCalendarEvent(event *EpitechEvent) (*calendar.Event, error) {
 }
 
 func GetGoogleCalendarService(credentialsPath string) (*calendar.Service, error) {
-	b, err := ioutil.ReadFile(credentialsPath)
+	b, err := ioutil.ReadFile(path.Join(credentialsPath, "credentials.json"))
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
@@ -202,7 +203,7 @@ func GetGoogleCalendarService(credentialsPath string) (*calendar.Service, error)
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
 
-	client := getClient(config)
+	client := getClient(config, credentialsPath)
 	calendarService, err := calendar.NewService(context.Background(), option.WithHTTPClient(client))
 
 	return calendarService, err
