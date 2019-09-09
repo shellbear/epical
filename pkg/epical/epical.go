@@ -10,7 +10,7 @@ import (
 
 const (
 	CALENDAR_NAME = "EpiCal"
-	VERSION       = "0.1"
+	VERSION       = "0.1.2"
 )
 
 func ListEvents(epitechToken string) {
