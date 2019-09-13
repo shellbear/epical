@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
+
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (
@@ -22,16 +22,20 @@ func Execute() {
 	cli.PersistentFlags().StringVarP(&Credentials, "credentials", "c", "./", "Google API credentials folder")
 
 	if err := cli.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 }
 
 func init() {
 	listCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
-	listCmd.MarkPersistentFlagRequired("token")
+	if err := listCmd.MarkPersistentFlagRequired("token"); err != nil {
+		log.Fatalln(err)
+	}
+
 	syncCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
-	syncCmd.MarkPersistentFlagRequired("token")
+	if err := syncCmd.MarkPersistentFlagRequired("token"); err != nil {
+		log.Fatalln(err)
+	}
 
 	cli.AddCommand(versionCmd)
 	cli.AddCommand(clearCmd)

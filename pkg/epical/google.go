@@ -3,7 +3,6 @@ package epical
 import (
 	"encoding/json"
 	"fmt"
-	"google.golang.org/api/option"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/api/option"
+
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	GOOGLE_CALENDAR_API_TIME_FORMAT = "2006-01-02T15:04:05"
+	GoogleCalendarApiTimeFormat = "2006-01-02T15:04:05"
 )
 
 // Request a token from the web, then returns the retrieved token.
@@ -51,7 +52,7 @@ func getClient(config *oauth2.Config, credentialsPath string) *http.Client {
 		saveToken(tokFile, tok)
 	}
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
 	return config.Client(context.Background(), tok)
@@ -72,15 +73,20 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 // Saves a token to a file path.
 func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
+
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		log.Fatalf("Unable to cache oauth token: %v", err)
 	}
+
 	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+
+	if err := json.NewEncoder(f).Encode(token); err != nil {
+		log.Fatalln(err)
+	}
 }
 
-func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.Calendar, error) {
+func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.CalendarListEntry, error) {
 	var pageToken string
 	var calendarList *calendar.CalendarList
 	var err error
@@ -98,12 +104,7 @@ func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.
 
 		for _, cal := range calendarList.Items {
 			if cal.Summary == name {
-				googleCal, err := service.Calendars.Get(cal.Id).Do()
-				if err != nil {
-					return nil, err
-				}
-
-				return googleCal, nil
+				return cal, nil
 			}
 		}
 
@@ -116,7 +117,7 @@ func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.
 	return nil, nil
 }
 
-func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calendar.Calendar, error) {
+func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calendar.CalendarListEntry, error) {
 	cal, err := GetGoogleCalendarByName(service, name)
 	if err != nil {
 		return nil, err
@@ -126,13 +127,15 @@ func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calenda
 		return cal, nil
 	}
 
-	cal = &calendar.Calendar{
-		Summary:     CALENDAR_NAME,
-		Description: "https://github.com/shellbear/epical",
-		TimeZone:    "Europe/Paris",
+	cal = &calendar.CalendarListEntry{
+		Summary:         CalendarName,
+		Description:     "https://github.com/shellbear/epical",
+		TimeZone:        "Europe/Paris",
+		ForegroundColor: "#ff0000",
+		BackgroundColor: "#00ff00",
 	}
 
-	cal, err = service.Calendars.Insert(cal).Do()
+	cal, err = service.CalendarList.Insert(cal).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -144,45 +147,32 @@ func NewGoogleCalendarEvent(event *EpitechEvent) (*calendar.Event, error) {
 	var start, end time.Time
 	var err error
 
+	parts := []string{event.Start, event.End}
+
+	if rdv, valid := event.RdvGroupRegistered.(string); valid {
+		parts = strings.Split(rdv, "|")
+	}
+
+	start, err = time.Parse(EpitechEventTimeFormat, parts[0])
 	if err != nil {
 		return nil, err
 	}
 
-	rdv, valid := event.RdvGroupRegistered.(string)
-	if valid {
-		parts := strings.Split(rdv, "|")
-
-		start, err = time.Parse(EPITECH_EVENT_TIME_FORMAT, parts[0])
-		if err != nil {
-			return nil, err
-		}
-
-		end, err = time.Parse(EPITECH_EVENT_TIME_FORMAT, parts[1])
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		start, err = time.Parse(EPITECH_EVENT_TIME_FORMAT, event.Start)
-		if err != nil {
-			return nil, err
-		}
-
-		end, err = time.Parse(EPITECH_EVENT_TIME_FORMAT, event.End)
-		if err != nil {
-			return nil, err
-		}
+	end, err = time.Parse(EpitechEventTimeFormat, parts[1])
+	if err != nil {
+		return nil, err
 	}
 
 	newEvent := &calendar.Event{
 		Summary: event.ActiTitle,
-		Description: fmt.Sprintf("%s/module/%s/%s/%s/%s", EPITECH_BASE_URL,
+		Description: fmt.Sprintf("%s/module/%s/%s/%s/%s", EpitechBaseUrl,
 			event.Scolaryear, event.Codemodule, event.Codeinstance, event.Codeacti),
 		Start: &calendar.EventDateTime{
-			DateTime: start.Format(GOOGLE_CALENDAR_API_TIME_FORMAT),
+			DateTime: start.Format(GoogleCalendarApiTimeFormat),
 			TimeZone: "Europe/Paris",
 		},
 		End: &calendar.EventDateTime{
-			DateTime: end.Format(GOOGLE_CALENDAR_API_TIME_FORMAT),
+			DateTime: end.Format(GoogleCalendarApiTimeFormat),
 			TimeZone: "Europe/Paris",
 		},
 		Location: event.Room.Code,

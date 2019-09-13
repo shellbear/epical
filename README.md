@@ -55,3 +55,47 @@ You can specify the Google Calendar API folder path containing `credentials.json
 ```bash
 ./epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN --credentials /run/secrets/ sync
 ```
+
+## Usage
+
+The easiest way to run this tool is to launch it with a periodic periodic job.
+
+First, you need to generate the `token.json` file, which is the Google Calendar API token file.
+Make sure you have the file `credentials.json` and then run the script for the first time:
+
+If the `credentials.json` file is in your current directory then you can just do:
+```bash
+epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN
+```
+
+Otherwise, you can specify the path of the folder where it can be found:
+```bash
+epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN --credentials /run/secrets/
+```
+
+Then a message will appear:
+
+```
+Go to the following link in your browser then type the authorization code: 
+https://accounts.google.com/o/oauth2/auth...
+```
+
+Just open this link in a browser, sign in with your google account, and paste the code you received.
+Then, the `token.json` will be generated automatically.
+
+Finally, make sure that cron is installed and that the `/ etc / cron.hourly` folder exists.
+Just create a script in the `/ etc / cron.hourly` directory or any other cron directory of your choice:
+
+```bash
+> cat /etc/cron.hourly/epical
+#!/bin/sh
+
+EPICAL_BINARY_PATH/epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN -c CREDENTIALS_AND_TOKEN_FOLDER_PATH sync
+```
+
+Then give execute permissions to the file and check that everything is working correctly:
+
+```bash
+chmod +x /etc/cron.hourly/epical
+run-parts -v /etc/cron.hourly/
+```

@@ -59,15 +59,15 @@ type EpitechEvent struct {
 }
 
 const (
-	EPITECH_API_QUERY_TIME_FORMAT = "2006-01-02"
-	EPITECH_EVENT_TIME_FORMAT     = "2006-01-02 15:04:05"
-	EPITECH_BASE_URL              = "https://intra.epitech.eu"
+	EpitechApiQueryTimeFormat = "2006-01-02"
+	EpitechEventTimeFormat    = "2006-01-02 15:04:05"
+	EpitechBaseUrl            = "https://intra.epitech.eu"
 )
 
 // GetCalendar aims to fetch Epitech calendar data
 func GetRegisteredEvents(token string) ([]EpitechEvent, error) {
-	start := time.Now().Format(EPITECH_API_QUERY_TIME_FORMAT)
-	resp, err := http.Get(fmt.Sprintf("%s/auth-%s/planning/load?format=json&start=%s", EPITECH_BASE_URL, token, start))
+	start := time.Now().Format(EpitechApiQueryTimeFormat)
+	resp, err := http.Get(fmt.Sprintf("%s/auth-%s/planning/load?format=json&start=%s", EpitechBaseUrl, token, start))
 
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func GetRegisteredEvents(token string) ([]EpitechEvent, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Request to %s failed (%s)", resp.Request.Host, resp.Status)
+		return nil, fmt.Errorf("request to %s failed (%s)", resp.Request.Host, resp.Status)
 	}
 
 	var data []EpitechEvent
