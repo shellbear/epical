@@ -24,7 +24,7 @@ epical version
 
 #### Direct download
 
-You can also download the binaries from the **Release** page: https://github.com/ShellBear/epical/releases.
+You can also download the binaries from the [releases](https://github.com/ShellBear/epical/releases) page.
 
 ## Commands
 
@@ -58,7 +58,7 @@ You can specify the Google Calendar API folder path containing `credentials.json
 
 ## Usage
 
-The easiest way to run this tool is to launch it with a periodic periodic job.
+The easiest way to run this tool is to execute it with a periodic cron job.
 
 First, you need to generate the `token.json` file, which is the Google Calendar API token file.
 Make sure you have the file `credentials.json` and then run the script for the first time:
@@ -83,8 +83,8 @@ https://accounts.google.com/o/oauth2/auth...
 Just open this link in a browser, sign in with your google account, and paste the code you received.
 Then, the `token.json` will be generated automatically.
 
-Finally, make sure that cron is installed and that the `/ etc / cron.hourly` folder exists.
-Just create a script in the `/ etc / cron.hourly` directory or any other cron directory of your choice:
+Finally, make sure that cron is installed and that the `/etc/cron.hourly` folder exists.
+Just create a script in the `/etc/cron.hourly` directory or any other cron directory of your choice:
 
 ```bash
 > cat /etc/cron.hourly/epical
@@ -93,9 +93,20 @@ Just create a script in the `/ etc / cron.hourly` directory or any other cron di
 EPICAL_BINARY_PATH/epical --token YOUR_EPITECH_AUTOLOGIN_TOKEN -c CREDENTIALS_AND_TOKEN_FOLDER_PATH sync
 ```
 
-Then give execute permissions to the file and check that everything is working correctly:
+Then give execute permission to the script and check that everything is working correctly:
 
 ```bash
 chmod +x /etc/cron.hourly/epical
 run-parts -v /etc/cron.hourly/
 ```
+
+Congrats, you're done!
+
+## Built With
+
+- [cobra](https://github.com/spf13/cobra) - A Commander for modern Go CLI interactions
+- [google-api-go-client](https://github.com/googleapis/google-api-go-client) - Google APIs for Go
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
