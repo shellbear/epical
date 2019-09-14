@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 )
 
 const (
@@ -47,33 +48,41 @@ func ListEvents(epitechToken string) {
 	}
 }
 
-func ClearEvents(credentialsPath string) {
+func ClearEvents(credentialsPath string, deleteFrom time.Time, deleteCalendar bool) {
 	svc, err := GetGoogleCalendarService(credentialsPath)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to get Google calendar service,", err)
 	}
 
 	cal, err := GetGoogleCalendarByName(svc, CalendarName)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to get Google calendar ", err)
 	}
 
 	if cal != nil {
 		events, err := svc.Events.List(cal.Id).Do()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("Failed to list calendar events", err)
 		}
 
 		for _, evt := range events.Items {
-			err = svc.Events.Delete(cal.Id, evt.Id).Do()
+			t, err := time.Parse(time.RFC3339, evt.Start.DateTime)
 			if err != nil {
-				log.Fatalln(err)
+				log.Fatalln("Failed to parse calendar event datetime,", err)
+			}
+
+			if t.After(deleteFrom) {
+				err = svc.Events.Delete(cal.Id, evt.Id).Do()
+				if err != nil {
+					log.Fatalln("Failed to delete calendar event,", err)
+				}
 			}
 		}
 
-		err = svc.Calendars.Delete(cal.Id).Do()
-		if err != nil {
-			log.Fatalln(err)
+		if deleteCalendar {
+			if err = svc.Calendars.Delete(cal.Id).Do(); err != nil {
+				log.Fatalln("Failed to delete Google calendar,", err)
+			}
 		}
 	}
 }
@@ -85,18 +94,19 @@ func SyncCalendar(credentialsPath, token string) {
 	}
 
 	fmt.Printf("Found %d events to synchronize.\n", len(data))
-
 	svc, err := GetGoogleCalendarService(credentialsPath)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to get Google calendar service,", err)
 	}
 
-	ClearEvents(credentialsPath)
+	t := time.Now().Truncate(time.Hour * 24)
+
+	ClearEvents(credentialsPath, t, false)
 	fmt.Println("Cleared old calendar events.")
 
 	cal, err := GetOrCreateGoogleCalendar(svc, CalendarName)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to get Google calendar,", err)
 	}
 
 	if len(data) == 0 {
@@ -105,12 +115,12 @@ func SyncCalendar(credentialsPath, token string) {
 		for _, c := range data {
 			newEvt, err := NewGoogleCalendarEvent(&c)
 			if err != nil {
-				log.Fatalln(err)
+				log.Fatalln("Failed to create Google calendar event,", err)
 			}
 
 			evt, err := svc.Events.Insert(cal.Id, newEvt).Do()
 			if err != nil {
-				log.Fatalln(err)
+				log.Fatalln("Failed to create Google calendar event", err)
 			}
 
 			log.Println("Created event", evt.Summary)

@@ -22,20 +22,16 @@ func Execute() {
 	cli.PersistentFlags().StringVarP(&Credentials, "credentials", "c", "./", "Google API credentials folder")
 
 	if err := cli.Execute(); err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to execute CLI", err)
 	}
 }
 
 func init() {
 	listCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
-	if err := listCmd.MarkPersistentFlagRequired("token"); err != nil {
-		log.Fatalln(err)
-	}
+	listCmd.MarkPersistentFlagRequired("token")
 
 	syncCmd.PersistentFlags().StringVarP(&EpitechToken, "token", "t", "", "Epitech API Token")
-	if err := syncCmd.MarkPersistentFlagRequired("token"); err != nil {
-		log.Fatalln(err)
-	}
+	syncCmd.MarkPersistentFlagRequired("token")
 
 	cli.AddCommand(versionCmd)
 	cli.AddCommand(clearCmd)

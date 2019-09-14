@@ -86,7 +86,7 @@ func saveToken(path string, token *oauth2.Token) {
 	}
 }
 
-func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.CalendarListEntry, error) {
+func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.Calendar, error) {
 	var pageToken string
 	var calendarList *calendar.CalendarList
 	var err error
@@ -104,7 +104,7 @@ func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.
 
 		for _, cal := range calendarList.Items {
 			if cal.Summary == name {
-				return cal, nil
+				return service.Calendars.Get(cal.Id).Do()
 			}
 		}
 
@@ -117,7 +117,7 @@ func GetGoogleCalendarByName(service *calendar.Service, name string) (*calendar.
 	return nil, nil
 }
 
-func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calendar.CalendarListEntry, error) {
+func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calendar.Calendar, error) {
 	cal, err := GetGoogleCalendarByName(service, name)
 	if err != nil {
 		return nil, err
@@ -127,15 +127,13 @@ func GetOrCreateGoogleCalendar(service *calendar.Service, name string) (*calenda
 		return cal, nil
 	}
 
-	cal = &calendar.CalendarListEntry{
-		Summary:         CalendarName,
-		Description:     "https://github.com/shellbear/epical",
-		TimeZone:        "Europe/Paris",
-		ForegroundColor: "#ff0000",
-		BackgroundColor: "#00ff00",
+	cal = &calendar.Calendar{
+		Summary:     CalendarName,
+		Description: "https://github.com/shellbear/epical",
+		TimeZone:    "Europe/Paris",
 	}
 
-	cal, err = service.CalendarList.Insert(cal).Do()
+	cal, err = service.Calendars.Insert(cal).Do()
 	if err != nil {
 		return nil, err
 	}
