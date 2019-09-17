@@ -8,14 +8,14 @@ import (
 )
 
 type EpitechEvent struct {
-	Scolaryear       string `json:"scolaryear"`
-	Codemodule       string `json:"codemodule"`
-	Codeinstance     string `json:"codeinstance"`
-	Codeacti         string `json:"codeacti"`
-	Codeevent        string `json:"codeevent"`
+	ScholarYear      string `json:"scolaryear"`
+	CodeModule       string `json:"codemodule"`
+	CodeInstance     string `json:"codeinstance"`
+	CodeActi         string `json:"codeacti"`
+	CodeEvent        string `json:"codeevent"`
 	Semester         int    `json:"semester"`
 	InstanceLocation string `json:"instance_location"`
-	Titlemodule      string `json:"titlemodule"`
+	ModuleTitle      string `json:"titlemodule"`
 	ProfInst         []struct {
 		Type    string `json:"type"`
 		Login   string `json:"login"`

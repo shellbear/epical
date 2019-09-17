@@ -11,7 +11,7 @@ import (
 
 const (
 	CalendarName = "EpiCal"
-	Version      = "0.1.4"
+	Version      = "0.1.5"
 )
 
 func ListEvents(epitechToken string) {
@@ -59,32 +59,35 @@ func ClearEvents(credentialsPath string, deleteFrom time.Time, deleteCalendar bo
 		log.Fatalln("Failed to get Google calendar ", err)
 	}
 
-	if cal != nil {
-		events, err := svc.Events.List(cal.Id).Do()
+	if cal == nil {
+		return
+	}
+
+	events, err := GetGoogleCalendarEvents(cal.Id, svc)
+	if err != nil {
+		log.Fatalln("Failed to list calendar events", err)
+	}
+
+	for _, evt := range events {
+		t, err := time.Parse(time.RFC3339, evt.Start.DateTime)
 		if err != nil {
-			log.Fatalln("Failed to list calendar events", err)
+			log.Fatalln("Failed to parse calendar event datetime,", err)
 		}
 
-		for _, evt := range events.Items {
-			t, err := time.Parse(time.RFC3339, evt.Start.DateTime)
+		if t.After(deleteFrom) {
+			err = svc.Events.Delete(cal.Id, evt.Id).Do()
 			if err != nil {
-				log.Fatalln("Failed to parse calendar event datetime,", err)
-			}
-
-			if t.After(deleteFrom) {
-				err = svc.Events.Delete(cal.Id, evt.Id).Do()
-				if err != nil {
-					log.Fatalln("Failed to delete calendar event,", err)
-				}
-			}
-		}
-
-		if deleteCalendar {
-			if err = svc.Calendars.Delete(cal.Id).Do(); err != nil {
-				log.Fatalln("Failed to delete Google calendar,", err)
+				log.Fatalln("Failed to delete calendar event,", err)
 			}
 		}
 	}
+
+	if deleteCalendar {
+		if err = svc.Calendars.Delete(cal.Id).Do(); err != nil {
+			log.Fatalln("Failed to delete Google calendar,", err)
+		}
+	}
+
 }
 
 func SyncCalendar(credentialsPath, token string) {
@@ -99,25 +102,43 @@ func SyncCalendar(credentialsPath, token string) {
 		log.Fatalln("Failed to get Google calendar service,", err)
 	}
 
-	t := time.Now().Truncate(time.Hour * 24)
-
-	ClearEvents(credentialsPath, t, false)
-	fmt.Println("Cleared old calendar events.")
-
 	cal, err := GetOrCreateGoogleCalendar(svc, CalendarName)
 	if err != nil {
 		log.Fatalln("Failed to get Google calendar,", err)
 	}
 
+	googleEvents, err := GetGoogleCalendarEvents(cal.Id, svc)
+	if err != nil {
+		log.Fatalln("Failed to get Google calendar events,", err)
+	}
+
 	if len(data) == 0 {
 		fmt.Println("There is no upcoming Epitech event.")
-	} else {
-		for _, c := range data {
-			newEvt, err := NewGoogleCalendarEvent(&c)
-			if err != nil {
-				log.Fatalln("Failed to create Google calendar event,", err)
-			}
+		return
+	}
 
+	i := 0
+
+	for _, c := range data {
+		found := false
+		newEvt, err := NewGoogleCalendarEvent(&c)
+		if err != nil {
+			log.Fatalln("Failed to create Google calendar event,", err)
+		}
+
+		for _, oldEvt := range googleEvents {
+			description := strings.Split(oldEvt.Description, "\n")
+
+			if len(description) != 0 && c.CodeEvent == description[0] && newEvt.Summary == oldEvt.Summary &&
+				newEvt.Start.Date == oldEvt.Start.Date && newEvt.End.Date == oldEvt.End.Date {
+				googleEvents[i] = oldEvt
+				i++
+				found = true
+				break
+			}
+		}
+
+		if !found {
 			evt, err := svc.Events.Insert(cal.Id, newEvt).Do()
 			if err != nil {
 				log.Fatalln("Failed to create Google calendar event", err)
@@ -125,5 +146,11 @@ func SyncCalendar(credentialsPath, token string) {
 
 			log.Println("Created event", evt.Summary)
 		}
+	}
+
+	googleEvents = googleEvents[:i]
+
+	for _, event := range googleEvents {
+		svc.Events.Delete(cal.Id, event.Id)
 	}
 }

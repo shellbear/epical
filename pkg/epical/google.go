@@ -162,9 +162,10 @@ func NewGoogleCalendarEvent(event *EpitechEvent) (*calendar.Event, error) {
 	}
 
 	newEvent := &calendar.Event{
+		Etag:    event.CodeEvent,
 		Summary: event.ActiTitle,
-		Description: fmt.Sprintf("%s/module/%s/%s/%s/%s", EpitechBaseUrl,
-			event.Scolaryear, event.Codemodule, event.Codeinstance, event.Codeacti),
+		Description: fmt.Sprintf("%s\n%s/module/%s/%s/%s/%s", event.CodeEvent, EpitechBaseUrl,
+			event.ScholarYear, event.CodeModule, event.CodeInstance, event.CodeActi),
 		Start: &calendar.EventDateTime{
 			DateTime: start.Format(GoogleCalendarApiTimeFormat),
 			TimeZone: "Europe/Paris",
@@ -195,4 +196,31 @@ func GetGoogleCalendarService(credentialsPath string) (*calendar.Service, error)
 	calendarService, err := calendar.NewService(context.Background(), option.WithHTTPClient(client))
 
 	return calendarService, err
+}
+
+func GetGoogleCalendarEvents(calID string, service *calendar.Service) ([]*calendar.Event, error) {
+	var pageToken string
+	var eventsCall *calendar.Events
+	var events []*calendar.Event
+	var err error
+
+	for {
+		if pageToken == "" {
+			eventsCall, err = service.Events.List(calID).Do()
+		} else {
+			eventsCall, err = service.Events.List(calID).PageToken(pageToken).Do()
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, eventsCall.Items...)
+		pageToken = eventsCall.NextPageToken
+		if pageToken == "" {
+			break
+		}
+	}
+
+	return events, nil
 }
