@@ -51,9 +51,6 @@ func getClient(config *oauth2.Config, credentialsPath string) *http.Client {
 		tok = getTokenFromWeb(config)
 		saveToken(tokFile, tok)
 	}
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	return config.Client(context.Background(), tok)
 }
